@@ -1,9 +1,9 @@
 #!/usr/bin/ruby
 require 'rubygems'
-require 'Logger'
+require 'logger'
 require 'benchmark'
 require 'ping'
-require 'FileUtils'
+require 'fileutils'
 require 'open3'
 
 # Local Machine options === DIR OPTIONS ===
@@ -30,7 +30,7 @@ RSYNC_ONE_WAY_OPTS = "--remove-source-files"
 #============================= OPTIONS ==============================#
 # == Options for local machine.
 SSH_APP       = 'ssh'
-RSYNC_APP     = 'rsync'
+RSYNC_APP     = '/usr/bin/rsync'
 
 #EXCLUDE_FILE  = '/path/to/.rsyncignore'
 #DIR_TO_BACKUP = '/folder/to/backup'
@@ -66,7 +66,7 @@ run_time = Benchmark.realtime do
     # uni-to sync
     sync_uni_to.each do |dir| 
       rsync_uni_to = "#{rsync_one_way_cmd} #{localdir}/#{dir}/ #{SSH_USER}@#{SSH_SERVER}:#{remotedir}/#{dir}"
-      Open3::popen3("#{}") { |stdin, stdout, stderr|
+      Open3::popen3("#{rsync_uni_to}") { |stdin, stdout, stderr|
         tmp_stdout = stdout.read.strip
         tmp_stderr = stderr.read.strip
         logger.info("#{rsync_cmd}\n#{tmp_stdout}") unless tmp_stdout.empty?
@@ -76,8 +76,8 @@ run_time = Benchmark.realtime do
 
     # uni-from sync
     sync_uni_from.each do |dir| 
-      rsync_uni_from = "#{rsync_one_way_cmd} #{SSH_USER}@#{SSH_SERVER}:#{remotedir}/#{dir} #{localdir}/#{dir}/"
-      Open3::popen3("#{}") { |stdin, stdout, stderr|
+      rsync_uni_from = "#{rsync_one_way_cmd} #{SSH_USER}@#{SSH_SERVER}:#{remotedir}/#{dir}/ #{localdir}/#{dir}/"
+      Open3::popen3("#{rsync_uni_from}") { |stdin, stdout, stderr|
         tmp_stdout = stdout.read.strip
         tmp_stderr = stderr.read.strip
         logger.info("#{rsync_cmd}\n#{tmp_stdout}") unless tmp_stdout.empty?
@@ -86,9 +86,9 @@ run_time = Benchmark.realtime do
     end
 
     # bi sync
-    sync_uni_to.each do |dir| 
-      rsync_uni_to = "#{rsync_cmd} #{localdir}/#{dir}/ #{SSH_USER}@#{SSH_SERVER}:#{remotedir}/#{dir}"
-      Open3::popen3("#{}") { |stdin, stdout, stderr|
+    sync_two_way.each do |dir| 
+      rsync_two_way = "#{rsync_cmd} #{localdir}/#{dir}/ #{SSH_USER}@#{SSH_SERVER}:#{remotedir}/#{dir}"
+      Open3::popen3("#{rsync_two_way}") { |stdin, stdout, stderr|
         tmp_stdout = stdout.read.strip
         tmp_stderr = stderr.read.strip
         logger.info("#{rsync_cmd}\n#{tmp_stdout}") unless tmp_stdout.empty?
